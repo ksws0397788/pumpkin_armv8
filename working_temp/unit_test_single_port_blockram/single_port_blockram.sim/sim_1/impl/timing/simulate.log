@@ -1,0 +1,12 @@
+Vivado Simulator 2016.4
+Time resolution is 1 ps
+
+[info-testbench] simulation for single_port_blockram_testbench begins now
+[info-testbench] single_port_blockram_testbench testbench reset completed
+
+[info-testbench] No. 1 test (basic write-read access) fail
+[info-testbench] No. 2 test (write enable verify) pass
+
+[info-testbench] simulation for single_port_blockram_testbench comes to the end
+
+$finish called at time : 30100 ns : File "/home/pobu/codes/pumpkin_ARMv8/verify/unit_test/common/single_port_blockram/single_port_blockram_testbench.v" Line 76

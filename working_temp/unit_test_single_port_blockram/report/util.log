@@ -1,0 +1,28 @@
+Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2016.4 (lin64) Build 1733598 Wed Dec 14 22:35:42 MST 2016
+| Date         : Thu Aug 10 17:35:06 2017
+| Host         : ubuntu running 64-bit Ubuntu 17.04
+| Command      : report_utilization -verbose -hierarchical -hierarchical_depth 1000 -file /home/pobu/codes/pumpkin_ARMv8/working_temp/unit_test_single_port_blockram/report/util.log
+| Design       : single_port_blockram
+| Device       : 7vx690tffg1761-1
+| Design State : Routed
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------+--------+------------+------------+---------+------+-----+--------+--------+--------------+
+|       Instance       | Module | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP48 Blocks |
++----------------------+--------+------------+------------+---------+------+-----+--------+--------+--------------+
+| single_port_blockram |  (top) |          0 |          0 |       0 |    0 |   0 |      0 |      2 |            0 |
++----------------------+--------+------------+------------+---------+------+-----+--------+--------+--------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+
