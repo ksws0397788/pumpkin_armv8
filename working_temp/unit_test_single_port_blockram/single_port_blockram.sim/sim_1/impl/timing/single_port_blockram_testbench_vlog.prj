@@ -1,6 +1,0 @@
-# compile verilog/system verilog design source files
-verilog xil_defaultlib  "single_port_blockram_testbench_time_impl.v" --include "../../../../../../rtl/definitions"
-verilog xil_defaultlib  "../../../../../../verify/unit_test/common/single_port_blockram/single_port_blockram_testbench.v" --include "../../../../../../rtl/definitions"
-
-# Do not sort compile order
-nosort

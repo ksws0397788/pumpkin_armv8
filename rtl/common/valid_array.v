@@ -1,6 +1,6 @@
 module valid_array
 #(
-	parameter SINGLE_ELEMENT_SIZE_IN_BITS 	= 8,
+        parameter SINGLE_ELEMENT_SIZE_IN_BITS 	= 1,
         parameter NUMBER_SETS              	= 64,
         parameter NUMBER_WAYS              	= 16,
         parameter SET_PTR_WIDTH_IN_BITS    	= $clog2(NUMBER_SETS)
@@ -25,7 +25,11 @@ generate
         begin
                 
                 single_port_lutram
-                #(.SINGLE_ELEMENT_SIZE_IN_BITS(SINGLE_ELEMENT_SIZE_IN_BITS), .NUMBER_SETS(NUMBER_SETS), .SET_PTR_WIDTH_IN_BITS(SET_PTR_WIDTH_IN_BITS))
+                #(
+                        .SINGLE_ELEMENT_SIZE_IN_BITS(SINGLE_ELEMENT_SIZE_IN_BITS),
+                        .NUMBER_SETS(NUMBER_SETS),
+                        .SET_PTR_WIDTH_IN_BITS(SET_PTR_WIDTH_IN_BITS)
+                )
                 data_way
                 (
                         .reset_in               (reset_in),
@@ -37,7 +41,7 @@ generate
                         .access_set_addr_in     (access_set_addr_in),
 
                         .write_element_in       (write_en_in  & write_way_select_in[gen]),
-                        .read_element_out       (read_data_out[(gen+1) * CACHE_BLOCK_SIZE_IN_BITS - 1 : gen * CACHE_BLOCK_SIZE_IN_BITS])
+                        .read_element_out       (read_set_valid_out[(gen+1) * SINGLE_ELEMENT_SIZE_IN_BITS - 1 : gen * SINGLE_ELEMENT_SIZE_IN_BITS])
                 );
 
         end  

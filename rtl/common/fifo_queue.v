@@ -85,6 +85,7 @@ begin
 end
 
 generate
+genvar gen;
 
 if(STORAGE_TYPE == "LUTRAM")
 

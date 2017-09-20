@@ -17,7 +17,7 @@ module associative_data_array
         
         output [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0]                   read_single_element_out,
         output [SINGLE_ELEMENT_SIZE_IN_BITS * NUMBER_WAYS - 1 : 0]     read_set_element_out,
-        input  [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0]                   write_single_data_in
+        input  [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0]                   write_single_element_in
 );
 
 wire [SINGLE_ELEMENT_SIZE_IN_BITS * NUMBER_WAYS - 1 : 0] data_to_mux;
@@ -40,7 +40,7 @@ generate
                         
                         .access_set_addr_in     (access_set_addr_in),
 
-                        .write_element_in       (write_single_data_in),
+                        .write_element_in       (write_single_element_in),
                         .read_element_out       (data_to_mux[(gen+1) * SINGLE_ELEMENT_SIZE_IN_BITS - 1 : gen * SINGLE_ELEMENT_SIZE_IN_BITS])
                 );
 
@@ -68,7 +68,7 @@ mux_8
 (
         .way_packed_in (data_to_mux),
         .sel_in        (way_select_stage),
-        .way_packed_out(read_data_out)
+        .way_packed_out(read_single_element_out)
 );
 
 endmodule

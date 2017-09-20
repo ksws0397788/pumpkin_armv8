@@ -1,40 +1,46 @@
+`include "prefetcher_parameters.h"
+
 module spp_prefetcher
+#(
+        parameter ADDR_WIDTH = 64
+)
 (
         input clk_in,
         input reset_in,
 
-        input [`ADDR_WIDTH - 1 : 0]     access_address,
-        input                           access_valid,
-        output                          access_address_ack,
+        input [ADDR_WIDTH - 1 : 0]      access_address_in,
+        input                           access_valid_in,
+        output                          access_address_ack_out,
 
-        output                          prefetch_address,
-        output                          prefetch_valid,
-        output                          prefetch_ack,
-        output                          prefetch_confidence,            // currently unused wire
-        output                          prefetch_critical,              // currently unused wire
+        output [ADDR_WIDTH - 1 : 0]     prefetch_address_out,
+        output                          prefetch_valid_out,
+        input                           prefetch_ack_in,
+        
+        output                          prefetch_confidence_out,            // currently unused wire
+        output                          prefetch_critical_out,              // currently unused wire
 
-        input                           l3_read_queue_ack,
-        input                           l3_read_queue_full,             // currently unused wire
+        input                           l3_read_queue_ack_in,
+        input                           l3_read_queue_full_in,             // currently unused wire
 
-        input                           access_write,                   // currently unused wire
-        input                           access_core_id,                 // currently unused wire
-        input                           access_inst_flag,               // currently unused wire
-        input                           access_type,                    // currently unused wire
+        input                           access_write_in,                   // currently unused wire
+        input                           access_core_id_in,                 // currently unused wire
+        input                           access_inst_flag_in,               // currently unused wire
+        input                           access_type_in,                    // currently unused wire
 
-        input [`ADDR_WIDTH - 1 : 0]     evict_address,                  // currently unused wire
-        input                           evict_valid,                    // currently unused wire
+        input [ADDR_WIDTH - 1 : 0]      evict_address_in,                  // currently unused wire
+        input                           evict_valid_in,                    // currently unused wire
 
-        input [`ADDR_WIDTH - 1 : 0]     refill_address,                 // currently unused wire
-        input                           refill_valid,                   // currently unused wire
-)
+        input [ADDR_WIDTH - 1 : 0]      refill_address_in,                 // currently unused wire
+        input                           refill_valid_in                    // currently unused wire
+);
 
-wire [`ADDR_WIDTH - 1 : 0]      address_to_main_ctrl;
+wire [ADDR_WIDTH - 1 : 0]      address_to_main_ctrl;
 
 fifo_queue
 #(
         .QUEUE_SIZE                     (`INPUT_REQUEST_QUEUE_SIZE),
         .QUEUE_PTR_WIDTH_IN_BITS        ($clog2(`INPUT_REQUEST_QUEUE_SIZE)),
-        .SINGLE_ENTRY_WIDTH_IN_BITS     (`ADDR_WIDTH)
+        .SINGLE_ENTRY_WIDTH_IN_BITS     (ADDR_WIDTH)
 )
 input_request_queue
 (
@@ -44,24 +50,22 @@ input_request_queue
         .is_empty_out                   (), // intened left unconnected
         .is_full_out                    (is_input_request_queue_full),
 
-        .request_in                     (access_address),
-        .request_valid_in               (access_valid),
-        .issue_ack_out                  (access_address_ack),
+        .request_in                     (access_address_in),
+        .request_valid_in               (access_valid_in),
+        .issue_ack_out                  (access_address_ack_out),
         
         .request_out                    (address_to_main_ctrl),
         .request_valid_out              (address_valid_to_main_ctrl),
         .issue_ack_in                   (main_ctrl_ack_to_input_request_queue)
 );
 
-wire [`ADDR_WIDTH                                                       - 1 : 0] address_to_main_ctrl;
-
-wire [`ADDR_WIDTH                                                       - 1 : 0] prefetch_to_output_queue;
+wire [ADDR_WIDTH                                                        - 1 : 0] prefetch_to_output_queue;
 
 wire [$clog2(`SIG_TABLE_SET)                                            - 1 : 0] access_set_addr_to_sig_tag;
 wire [`SIG_TABLE_ASSOCIATIVITY                                          - 1 : 0] way_select_to_sig_tag;
 wire [`SIG_TABLE_ASSOCIATIVITY                                          - 1 : 0] read_set_page_valid;
-wire [`SIG_PAGE_NUM_TAG_BITS * `SIG_TABLE_ASSOCIATIVITY                 - 1 : 0] read_set_page_tag;
-wire [`SIG_PAGE_NUM_TAG_BITS                                            - 1 : 0] write_page_tag;
+wire [`SIG_TABLE_PAGE_NUM_TAG_BITS * `SIG_TABLE_ASSOCIATIVITY           - 1 : 0] read_set_page_tag;
+wire [`SIG_TABLE_PAGE_NUM_TAG_BITS                                      - 1 : 0] write_page_tag;
 
 wire [$clog2(`SIG_TABLE_SET)                                            - 1 : 0] access_set_addr_to_sig_data;
 wire [`SIG_TABLE_ASSOCIATIVITY                                          - 1 : 0] way_select_to_sig_data;
@@ -98,7 +102,15 @@ wire [`PT_TABLE_DELTA_ASSOCIATIVITY                                     - 1 : 0]
 wire [`PT_TABLE_DELTA_COUNTER_BITS * `PT_TABLE_DELTA_ASSOCIATIVITY      - 1 : 0] read_set_pt_delta_counter;
 wire [`PT_TABLE_DELTA_COUNTER_BITS                                      - 1 : 0] write_pt_delta_counter;
 
-main_ctrl main_ctrl
+spp_main_ctrl
+#(
+        .ADDR_WIDTH                    (ADDR_WIDTH),
+        .SIG_TABLE_SET_INDEX_BITS      (`SIG_TABLE_SET_INDEX_BITS),
+        .PT_TABLE_SIG_INDEX_BITS       (`PT_TABLE_SIG_INDEX_BITS),
+        .PT_TABLE_SIG_TAG_BITS         (`PT_TABLE_SIG_TAG_BITS),
+        .PT_TABLE_DELTA_INDEX_BITS     (`PT_TABLE_DELTA_INDEX_BITS)
+)
+spp_main_ctrl
 (
         .reset_in                                       (reset_in),
         .clk_in                                         (clk_in),
@@ -192,6 +204,7 @@ main_ctrl main_ctrl
 // signature table
 valid_array
 #(
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (1),
         .NUMBER_SETS                    (`SIG_TABLE_SET),
         .NUMBER_WAYS                    (`SIG_TABLE_ASSOCIATIVITY),
         .SET_PTR_WIDTH_IN_BITS          ($clog2(`SIG_TABLE_SET))
@@ -212,7 +225,7 @@ sig_valid_array
 
 associative_data_array
 #(
-        .SINGLE_ELEMENT_SIZE_IN_BITS    (`SIG_PAGE_NUM_TAG_BITS),
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (`SIG_TABLE_PAGE_NUM_TAG_BITS),
         .NUMBER_SETS                    (`SIG_TABLE_SET),
         .NUMBER_WAYS                    (`SIG_TABLE_ASSOCIATIVITY),
         .SET_PTR_WIDTH_IN_BITS          ($clog2(`SIG_TABLE_SET))
@@ -229,7 +242,7 @@ sig_page_tag_array
         .way_select_in                  (way_select_to_sig_tag),
         
         .read_single_element_out        (),
-        .read_set_element_out           (read_set_page_tag)
+        .read_set_element_out           (read_set_page_tag),
         .write_single_element_in        (write_page_tag)
 
 );
@@ -253,7 +266,7 @@ sig_array
         .way_select_in                  (way_select_to_sig_data),
         
         .read_single_element_out        (),
-        .read_set_element_out           (read_set_sig)
+        .read_set_element_out           (read_set_sig),
         .write_single_element_in        (write_sig)
 
 );
@@ -277,7 +290,7 @@ sig_blockID_array
         .way_select_in                  (way_select_to_sig_data),
         
         .read_single_element_out        (),
-        .read_set_element_out           (read_set_sig_blockID)
+        .read_set_element_out           (read_set_sig_blockID),
         .write_single_element_in        (write_sig_blockID)
 );
 
@@ -285,9 +298,10 @@ sig_blockID_array
 
 valid_array
 #(
-        .NUMBER_SETS(`PT_TABLE_SIG_SET),
-        .NUMBER_WAYS(`PT_TABLE_SIG_ASSOCIATIVITY),
-        .SET_PTR_WIDTH_IN_BITS($clog2(`PT_TABLE_SIG_SET))
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (1),
+        .NUMBER_SETS                    (`PT_TABLE_SIG_SET),
+        .NUMBER_WAYS                    (`PT_TABLE_SIG_ASSOCIATIVITY),
+        .SET_PTR_WIDTH_IN_BITS          ($clog2(`PT_TABLE_SIG_SET))
 )
 pattern_sig_valid_array
 (
@@ -305,7 +319,7 @@ pattern_sig_valid_array
 
 associative_data_array
 #(
-        .CACHE_BLOCK_SIZE_IN_BITS       (`PT_TABLE_SIG_TAG_BITS),
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (`PT_TABLE_SIG_TAG_BITS),
         .NUMBER_SETS                    (`PT_TABLE_SIG_SET),
         .NUMBER_WAYS                    (`PT_TABLE_SIG_ASSOCIATIVITY),
         .SET_PTR_WIDTH_IN_BITS          ($clog2(`PT_TABLE_SIG_SET))
@@ -322,13 +336,13 @@ pattern_sig_tag_array
         .write_en_in                    (write_en_to_pt_sig_tag),
         
         .read_single_element_out        (),
-        .read_set_element_out           (read_set_pt_sig_tag)
+        .read_set_element_out           (read_set_pt_sig_tag),
         .write_single_element_in        (write_pt_sig_tag)
 );
 
 associative_data_array
 #(
-        .CACHE_BLOCK_SIZE_IN_BITS       (`PT_TABLE_SIG_COUNTER_BITS),
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (`PT_TABLE_SIG_COUNTER_BITS),
         .NUMBER_SETS                    (`PT_TABLE_SIG_SET),
         .NUMBER_WAYS                    (`PT_TABLE_SIG_ASSOCIATIVITY),
         .SET_PTR_WIDTH_IN_BITS          ($clog2(`PT_TABLE_SIG_SET))
@@ -344,17 +358,19 @@ pattern_sig_counter_array
         .way_select_in                  (way_select_to_pt_sig_data),
         .write_en_in                    (write_en_to_pt_sig_data),
         
-        .read_data_out                  (read_set_pt_sig_counter),    
-        .write_data_in                  (write_pt_sig_counter)
+        .read_single_element_out        (),
+        .read_set_element_out           (read_set_pt_sig_counter),
+        .write_single_element_in        (write_pt_sig_counter)
 );
 
 // pattern table - delta
 
 valid_array
 #(
-        .NUMBER_SETS(`PT_TABLE_DELTA_SET),
-        .NUMBER_WAYS(`PT_TABLE_DELTA_ASSOCIATIVITY),
-        .SET_PTR_WIDTH_IN_BITS($clog2(`PT_TABLE_DELTA_SET))
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (1),
+        .NUMBER_SETS                    (`PT_TABLE_DELTA_SET),
+        .NUMBER_WAYS                    (`PT_TABLE_DELTA_ASSOCIATIVITY),
+        .SET_PTR_WIDTH_IN_BITS          ($clog2(`PT_TABLE_DELTA_SET))
 )
 pattern_delta_valid_array
 (
@@ -367,12 +383,12 @@ pattern_delta_valid_array
         .write_way_select_in            (way_select_to_pt_delta_tag),
         .write_en_in                    (write_en_to_pt_delta_tag),
 
-        .read_set_valid_out             (pt_valid_set)
+        .read_set_valid_out             (read_set_pt_delta_valid)
 );
 
 associative_data_array
 #(
-        .CACHE_BLOCK_SIZE_IN_BITS       (`DELTA_BITS),
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (`DELTA_BITS),
         .NUMBER_SETS                    (`PT_TABLE_DELTA_SET),
         .NUMBER_WAYS                    (`PT_TABLE_DELTA_ASSOCIATIVITY),
         .SET_PTR_WIDTH_IN_BITS          ($clog2(`PT_TABLE_DELTA_SET))
@@ -387,14 +403,15 @@ pattern_delta_array
         
         .way_select_in                  (way_select_to_pt_delta_tag),
         .write_en_in                    (write_en_to_pt_delta_tag),
-        
-        .read_data_out                  (read_set_pt_delta),    
-        .write_data_in                  (write_pt_delta)
+
+        .read_single_element_out        (),
+        .read_set_element_out           (read_set_pt_delta),
+        .write_single_element_in        (write_pt_delta)
 );
 
 associative_data_array
 #(
-        .CACHE_BLOCK_SIZE_IN_BITS       (`PT_TABLE_DELTA_COUNTER_BITS),
+        .SINGLE_ELEMENT_SIZE_IN_BITS    (`PT_TABLE_DELTA_COUNTER_BITS),
         .NUMBER_SETS                    (`PT_TABLE_DELTA_SET),
         .NUMBER_WAYS                    (`PT_TABLE_DELTA_ASSOCIATIVITY),
         .SET_PTR_WIDTH_IN_BITS          ($clog2(`PT_TABLE_DELTA_SET))
@@ -409,9 +426,10 @@ pattern_delta_counter_array
         
         .way_select_in                  (way_select_to_pt_delta_data),
         .write_en_in                    (write_en_to_pt_delta_data),
-        
-        .read_data_out                  (read_set_pt_delta_counter),    
-        .write_data_in                  (write_pt_delta_counter)
+
+        .read_single_element_out        (),
+        .read_set_element_out           (read_set_pt_delta_counter),
+        .write_single_element_in        (write_pt_delta_counter)
 );
 
 
@@ -419,9 +437,9 @@ pattern_delta_counter_array
 
 fifo_queue
 #(
-        .QUEUE_SIZE                     (`INPUT_REQUEST_QUEUE_SIZE),
-        .QUEUE_PTR_WIDTH_IN_BITS        ($clog2(`INPUT_REQUEST_QUEUE_SIZE)),
-        .SINGLE_ENTRY_WIDTH_IN_BITS     (`ADDR_WIDTH)
+        .QUEUE_SIZE                     (`PREFETCH_OUTPUT_QUEUE_SIZE),
+        .QUEUE_PTR_WIDTH_IN_BITS        ($clog2(`PREFETCH_OUTPUT_QUEUE_SIZE)),
+        .SINGLE_ENTRY_WIDTH_IN_BITS     (ADDR_WIDTH)
 )
 prefetch_queue
 (
@@ -435,9 +453,9 @@ prefetch_queue
         .request_valid_in               (prefetch_to_output_queue_valid),
         .issue_ack_out                  (output_queue_ack),
         
-        .request_out                    (prefetch_address),
-        .request_valid_out              (prefetch_valid),
-        .issue_ack_in                   (prefetch_ack)
+        .request_out                    (prefetch_address_out),
+        .request_valid_out              (prefetch_valid_out),
+        .issue_ack_in                   (prefetch_ack_in)
 );
 
 endmodule

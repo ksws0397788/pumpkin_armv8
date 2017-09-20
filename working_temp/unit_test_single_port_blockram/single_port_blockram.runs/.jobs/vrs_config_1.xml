@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<Runs Version="1" Minor="0">
-	<Run Id="synth_run" LaunchDir="/home/pobu/codes/pumpkin_ARMv8/working_temp/unit_test_single_port_blockram/single_port_blockram.runs/synth_run" FlowId="Vivado_Synthesis" FromStepId="vivado" ToStepId="vivado"/>
-</Runs>
-
