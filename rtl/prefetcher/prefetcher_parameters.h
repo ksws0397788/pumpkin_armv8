@@ -6,7 +6,7 @@
 `define PT_TABLE_SIG_SET                        256
 `define PT_TABLE_SIG_ASSOCIATIVITY              4
 `define PT_TABLE_DELTA_SET                      (`PT_TABLE_SIG_SET) * (`PT_TABLE_SIG_ASSOCIATIVITY)
-`define PT_TABLE_DELTA_ASSOCIATIVITY            1
+`define PT_TABLE_DELTA_ASSOCIATIVITY            4
 
 `define SIG_LENTH                               12
 `define SIG_SHIFT                               3
