@@ -13,7 +13,7 @@ module single_port_lutram
         input      [SET_PTR_WIDTH_IN_BITS       - 1 : 0]        access_set_addr_in,
 
         input      [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0]        write_element_in,
-        output     [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0]        read_element_out
+        output    reg [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0]        read_element_out
 );
 
 reg [SINGLE_ELEMENT_SIZE_IN_BITS - 1 : 0] lutram [NUMBER_SETS - 1 : 0];
@@ -26,7 +26,7 @@ begin
         begin
                 for(set_index = 0; set_index < NUMBER_SETS; set_index = set_index + 1)
                 begin
-                        lutram[access_set_addr_in] <= {(SINGLE_ELEMENT_SIZE_IN_BITS){1'b0}};
+                        lutram[set_index] <= {(SINGLE_ELEMENT_SIZE_IN_BITS){1'b0}};
                 end
         end
         
@@ -37,8 +37,27 @@ begin
                         lutram[access_set_addr_in] <= write_element_in;
                 end
         end
+
 end
 
-assign read_element_out = lutram[access_set_addr_in];
+
+always @(posedge clk_in, posedge reset_in)
+begin
+        if(reset_in)
+        begin
+                read_element_out <= 0;
+        end
+        
+        else if(access_en_in)
+        begin
+                if(!write_en_in)
+                begin
+                        read_element_out <= lutram[access_set_addr_in];
+                end
+        end
+        
+end
+
+
 
 endmodule
