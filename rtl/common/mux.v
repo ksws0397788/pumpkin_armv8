@@ -1,6 +1,8 @@
+//16 way mux for associative_array
+
 `define encoder_case(count) { {(NUMBER_WAYS - (count) - 1){1'b0}}, {{1'b1}}, {(count){1'bx}} } : way_packed_out <= data_to_mux[count]
 
-module mux_decoded_8
+module mux_8
 #(
 	 parameter NUMBER_WAYS = 8,
 	 parameter SINGLE_ELEMENT_SIZE_IN_BITS = 4
@@ -28,7 +30,7 @@ always@*
 begin
 	casex(sel_in) 
 
-        `encoder_case(0);
+    `encoder_case(0);
 	`encoder_case(1);
 	`encoder_case(2);
 	`encoder_case(3);
@@ -36,6 +38,14 @@ begin
 	`encoder_case(5);
 	`encoder_case(6);
 	`encoder_case(7);
+	`encoder_case(8);
+	`encoder_case(9);
+	`encoder_case(10);
+	`encoder_case(11);
+	`encoder_case(12);
+	`encoder_case(13);
+	`encoder_case(14);
+	`encoder_case(15);
 	
 	default:
 	way_packed_out <= {(SINGLE_ELEMENT_SIZE_IN_BITS){1'b0}};
