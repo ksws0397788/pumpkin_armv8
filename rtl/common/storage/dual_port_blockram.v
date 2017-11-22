@@ -25,12 +25,13 @@ begin
         begin
         
                 read_element_out <= blockram[read_set_addr_in];
-
+        end 
+        
         if(write_en_in)
         begin
                 evict_element_out           <= blockram[write_set_addr_in];
                 blockram[write_set_addr_in] <= write_element_in;
         end
-    end
+    
 end
 endmodule
